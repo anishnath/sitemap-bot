@@ -19,13 +19,8 @@ if [[ ! -d .venv ]]; then
   pip -q install --upgrade pip
   pip -q install -r requirements.txt
   echo "[setup] Installing Playwright Chromium..."
-  python - <<'PY'
-from playwright.__main__ import main
-try:
-    main(["install", "chromium"])  # noqa
-except SystemExit:
-    pass
-PY
+  # Install browser binaries; ignore error if already installed
+  python -m playwright install chromium || true
 else
   source .venv/bin/activate
 fi
@@ -49,4 +44,3 @@ LOCKFILE="/tmp/sitemap-tweetbot.lock"
 ) 9>"$LOCKFILE"
 
 echo "[done]"
-

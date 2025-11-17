@@ -103,13 +103,7 @@ pip -q install --upgrade pip
 pip -q install -r requirements.txt
 
 # Playwright browser (idempotent)
-python - <<'PY'
-from playwright.__main__ import main
-try:
-    main(["install", "chromium"])  # noqa
-except SystemExit:
-    pass
-PY
+python -m playwright install chromium || true
 
 # Validate X env if not dry run
 if [[ "$DRY_RUN" -eq 0 ]]; then
