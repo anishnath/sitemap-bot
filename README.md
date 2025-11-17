@@ -94,4 +94,53 @@ Notes:
 - Media alt text is attached by default from page title/description. Disable with `--x-no-alt`.
 - Posting uses v2 `create tweet` when possible (requires app with write access). If v2 fails, it tries v1.1 `statuses/update` (may require elevated/paid access).
 - To avoid accidental posting, both `--post-to-x` and `TWITTER_POST=1` must be set.
+
+## Server Deployment (Ubuntu + cron)
+
+1) Install system deps (Playwright Chromium runtime) and git:
+
+```bash
+sudo apt-get update && sudo apt-get install -y \
+  git python3-venv ca-certificates fonts-liberation \
+  libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 \
+  libdbus-1-3 libdrm2 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 \
+  libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libstdc++6 libx11-6 libx11-xcb1 \
+  libxcb1 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrandr2 libxshmfence1 libxkbcommon0
+```
+
+2) Clone the repo:
+
+```bash
+cd ~ && git clone git@github.com:anishnath/sitemap-bot.git
+cd sitemap-bot
+```
+
+3) Create `.env` with your secrets (do NOT commit):
+
+```bash
+cat > .env << 'ENV'
+TWITTER_API_KEY=...
+TWITTER_API_SECRET=...
+TWITTER_ACCESS_TOKEN=...
+TWITTER_ACCESS_SECRET=...
+TWITTER_BEARER_TOKEN=...
+TWITTER_POST=1
+OPENAI_API_KEY=...
+ENV
+chmod 600 .env
+```
+
+4) Test run once:
+
+```bash
+./run_bot.sh
+```
+
+5) Cron job every 2 hours:
+
+```bash
+(crontab -l 2>/dev/null; echo "0 */2 * * * cd $HOME/sitemap-bot && /bin/bash ./run_bot.sh >> $HOME/sitemap-bot/bot.log 2>&1") | crontab -
+```
+
+This posts 1 tweet per run with popular hashtags, OpenAI copy, and ad/analytics blocking.
  - If you see Playwright timeouts, try `--wait-until domcontentloaded` or increase `--timeout`.

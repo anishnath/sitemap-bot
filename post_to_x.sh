@@ -81,6 +81,14 @@ done
 
 cd "$(dirname "$0")"
 
+# Load .env if present for convenience
+if [[ -f .env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env
+  set +a
+fi
+
 if [[ ! -f "$SITEMAP" ]]; then
   echo "ERROR: sitemap not found at $SITEMAP" >&2
   exit 1
@@ -150,4 +158,3 @@ python -m src.sitemap_tweetbot.main \
   "${POST_FLAGS[@]}"
 
 echo "Done. Check $OUT_DIR for posts and images."
-
