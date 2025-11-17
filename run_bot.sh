@@ -11,19 +11,21 @@ if [[ -f .env ]]; then
   set +a
 fi
 
-# One-time setup for venv and browsers
+# One-time setup for venv
 if [[ ! -d .venv ]]; then
   echo "[setup] Creating venv and installing requirements..."
   python3 -m venv .venv
   source .venv/bin/activate
   pip -q install --upgrade pip
   pip -q install -r requirements.txt
-  echo "[setup] Installing Playwright Chromium..."
-  # Install browser binaries; ignore error if already installed
-  python -m playwright install chromium || true
 else
   source .venv/bin/activate
 fi
+
+# Ensure Playwright browser is installed for this user and path
+export PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSERS_PATH:-$PWD/.pw-browsers}"
+echo "[setup] Ensuring Playwright Chromium at $PLAYWRIGHT_BROWSERS_PATH ..."
+python -m playwright install chromium || true
 
 # Prevent overlapping runs using flock
 LOCKFILE="/tmp/sitemap-tweetbot.lock"

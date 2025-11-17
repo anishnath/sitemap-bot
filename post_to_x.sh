@@ -38,7 +38,7 @@ OpenAI (optional): set OPENAI_API_KEY to enable --use-openai mode.
 USAGE
 }
 
-COUNT=2
+COUNT=1
 OUT_DIR="outputs"
 SITEMAP="sitemap.xml"
 EXCLUDE="/docs/"
@@ -103,6 +103,7 @@ pip -q install --upgrade pip
 pip -q install -r requirements.txt
 
 # Playwright browser (idempotent)
+export PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSERS_PATH:-$PWD/.pw-browsers}"
 python -m playwright install chromium || true
 
 # Validate X env if not dry run

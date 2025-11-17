@@ -133,3 +133,39 @@ def post_tweet_with_media_v2(
         pass
     url = f"https://x.com/{screen_name}/status/{tweet_id}" if screen_name and tweet_id else None
     return tweet_id, url
+
+
+def post_text_v2(text: str, dry_run: bool = False) -> Tuple[Optional[str], Optional[str]]:
+    if dry_run:
+        return None, None
+    if os.getenv('TWITTER_POST') not in ('1', 'true', 'TRUE', 'yes', 'YES'):
+        raise XAuthError("Set TWITTER_POST=1 to enable live posting.")
+    client = get_twitter_client()
+    resp = client.create_tweet(text=text)
+    tweet_id = str(resp.data.get('id')) if resp and resp.data else None
+    screen_name = None
+    try:
+        me = client.get_me()
+        if me and me.data:
+            screen_name = getattr(me.data, 'username', None)
+    except Exception:
+        pass
+    url = f"https://x.com/{screen_name}/status/{tweet_id}" if screen_name and tweet_id else None
+    return tweet_id, url
+
+
+def post_text_v1(text: str, dry_run: bool = False) -> Tuple[Optional[str], Optional[str]]:
+    if dry_run:
+        return None, None
+    if os.getenv('TWITTER_POST') not in ('1', 'true', 'TRUE', 'yes', 'YES'):
+        raise XAuthError("Set TWITTER_POST=1 to enable live posting.")
+    api = get_twitter_api()
+    status = api.update_status(status=text)
+    tweet_id = status.id_str
+    try:
+        user = api.verify_credentials()
+        screen_name = getattr(user, 'screen_name', None)
+    except Exception:
+        screen_name = None
+    url = f"https://x.com/{screen_name}/status/{tweet_id}" if screen_name else None
+    return tweet_id, url

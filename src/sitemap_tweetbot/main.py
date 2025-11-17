@@ -16,6 +16,8 @@ from .openai_gen import generate_tweet_openai, DEFAULT_MODEL as OPENAI_DEFAULT_M
 from .x_poster import (
     post_tweet_with_media_v2,
     post_tweet_with_media_v1,
+    post_text_v2,
+    post_text_v1,
     XAuthError,
 )
 
@@ -180,12 +182,21 @@ def main():
                     t = meta.get('og:title') or meta.get('title') or ''
                     d = meta.get('og:description') or meta.get('description') or ''
                     alt_text = (t or d)[:420]
-                # Prefer v2 post; fall back to v1.1 if v2 not available
-                try:
-                    tweet_id, tweet_url = post_tweet_with_media_v2(tweet, Path(shot_path), alt_text=alt_text, dry_run=False)
-                except Exception as e_v2:
-                    print(f"  v2 post failed: {e_v2}. Trying v1.1...", file=sys.stderr)
-                    tweet_id, tweet_url = post_tweet_with_media_v1(tweet, Path(shot_path), alt_text=alt_text, dry_run=False)
+                tweet_id = tweet_url = None
+                if shot_path and Path(shot_path).is_file():
+                    # Prefer v2 post with media; fall back to v1.1
+                    try:
+                        tweet_id, tweet_url = post_tweet_with_media_v2(tweet, Path(shot_path), alt_text=alt_text, dry_run=False)
+                    except Exception as e_v2:
+                        print(f"  v2 post failed: {e_v2}. Trying v1.1...", file=sys.stderr)
+                        tweet_id, tweet_url = post_tweet_with_media_v1(tweet, Path(shot_path), alt_text=alt_text, dry_run=False)
+                else:
+                    # Text-only fallback
+                    try:
+                        tweet_id, tweet_url = post_text_v2(tweet, dry_run=False)
+                    except Exception as e_v2:
+                        print(f"  v2 text post failed: {e_v2}. Trying v1.1...", file=sys.stderr)
+                        tweet_id, tweet_url = post_text_v1(tweet, dry_run=False)
                 record['x_tweet_id'] = tweet_id
                 record['x_url'] = tweet_url
                 if args.x_wait_seconds:
